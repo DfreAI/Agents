@@ -51,7 +51,7 @@ if uploaded_file is not None:
             model = Prophet(daily_seasonality=True, yearly_seasonality=True)
             model.fit(df)
 
-            # Make future data frame for prediction
+            # Make future data frame for prediction (ensure periods is passed correctly)
             future = model.make_future_dataframe(df, periods=365)  # Forecasting for the next year
 
             # Predict
