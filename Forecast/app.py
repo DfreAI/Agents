@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from prophet import Prophet  # Updated package
-import os
 
 # Set up page configuration
 st.set_page_config(page_title="Revenue Forecasting with Prophet", page_icon="📊", layout="wide")
@@ -21,11 +20,12 @@ if uploaded_file is not None:
 
     # Check if required columns 'Date' and 'Revenue' exist
     if 'Date' in df.columns and 'Revenue' in df.columns:
-        # Convert the 'Date' column to datetime format
+        # Convert 'Date' to datetime and 'Revenue' to numeric
         df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+        df['Revenue'] = pd.to_numeric(df['Revenue'], errors='coerce')
 
-        # Remove rows with invalid date or missing revenue
-        df = df.dropna(subset=['Date', 'Revenue'])
+        # Drop rows with missing values
+        df.dropna(subset=['Date', 'Revenue'], inplace=True)
 
         # Rename columns for Prophet compatibility
         df = df.rename(columns={'Date': 'ds', 'Revenue': 'y'})
@@ -46,25 +46,29 @@ if uploaded_file is not None:
         # Prophet model for forecasting
         st.subheader("Forecasting with Prophet Algorithm")
 
-        # Initialize Prophet model
-        model = Prophet(daily_seasonality=True, yearly_seasonality=True)
-        model.fit(df)
+        try:
+            # Initialize Prophet model
+            model = Prophet(daily_seasonality=True, yearly_seasonality=True)
+            model.fit(df)
 
-        # Make future data frame for prediction
-        future = model.make_future_dataframe(df, periods=365)  # Forecasting for the next year
+            # Make future data frame for prediction
+            future = model.make_future_dataframe(df, periods=365)  # Forecasting for the next year
 
-        # Predict
-        forecast = model.predict(future)
+            # Predict
+            forecast = model.predict(future)
 
-        # Plot the forecast
-        st.subheader("Forecasted Revenue")
-        fig1 = model.plot(forecast)
-        st.pyplot(fig1)
+            # Plot the forecast
+            st.subheader("Forecasted Revenue")
+            fig1 = model.plot(forecast)
+            st.pyplot(fig1)
 
-        # Display forecast components (trend, yearly, weekly)
-        st.subheader("Forecast Components")
-        fig2 = model.plot_components(forecast)
-        st.pyplot(fig2)
+            # Display forecast components (trend, yearly, weekly)
+            st.subheader("Forecast Components")
+            fig2 = model.plot_components(forecast)
+            st.pyplot(fig2)
+
+        except Exception as e:
+            st.error(f"An error occurred while making predictions: {str(e)}")
 
     else:
         st.error("The uploaded file must contain 'Date' and 'Revenue' columns.")
