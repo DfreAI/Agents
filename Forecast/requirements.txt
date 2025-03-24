@@ -4,3 +4,4 @@ matplotlib
 prophet
 seaborn
 python-dotenv
+openpyxl
